@@ -84,9 +84,9 @@ root@DESKTOP-HUPC6JQ:/mnt/c/Users/Benni/hxpctf/poor_canary# ropper -f canary --n
 - write the canary
 - write 12 bytes of garbage
 - write the address of our pop gadget (0x00026b7c)
-- write the address of "/bin/sh" (0x00071eb0)
-- write 4 bytes of garbage (which will go into r4)
-- write the address of system (which will go into pc)
+- write the address of "/bin/sh" (0x00071eb0) (which will be popped into r0)
+- write 4 bytes of garbage (which will be popped into r4)
+- write the address of system (which will be popped into pc)
 and the pc will point to `system`, r0 will point to `/bin/sh`, and thus we will have a shell!
 
 ```python
