@@ -157,4 +157,4 @@ namespace yunospace
     }
 }
 ```
-
+And indeed this exploit correctly yielded the flag `hxp{y0u_w0uldnt_b3l13v3_h0w_m4ny_3mulat0rs_g0t_th1s_wr0ng}`
