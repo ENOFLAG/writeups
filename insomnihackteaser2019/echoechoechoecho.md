@@ -179,6 +179,8 @@ INS{echo_echoecho_echo__echoech0echo_echoechoechoecho_bashbashbashbash}
 
 Thanks eboda for this nice brainf*ck and the captcha from hell.
 
+Writeup by @mmunnier and @domenukk
+
 ## Prior Challenges
 
 Sadly we did not find the writeup of last year's 34c3 challenge by eboda in similar style:
