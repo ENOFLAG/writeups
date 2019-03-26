@@ -2,6 +2,8 @@
 
 Decompiling with Ghidra *(domenukk: "I would never")* a CTF Challenge.
 
+Writeup by mmunier and domenukk.
+
 ![Ghidra](ghidra.png)
 
 ## Intro
@@ -17,9 +19,10 @@ The first thing we noticed was that the whole binary was scattered with a functi
 It's literally everywhere, however always with a different memory location.
 We figured out, at some point, that it's some sort of instrumentation, indicating which branches were taken - and how often.
 
-Apart from this, the binary didn't print any output at the start -- apart from "Invalid" -- so the first thing was to analyze what kind of input the binary wanted.
+Apart from this, the binary only printed "Invalid" - so first we analyzed what kind of input the binary wants.
 
 The general sequence of events was:
+
 1. Input a string of length < than 32
 2. Input a number n <= 4
 3. Input n numbers
@@ -29,23 +32,132 @@ The general sequence of events was:
 
 For this sequence to work the binary required a file called flag, and it used the numbers as indexes from where to read.
 
-The output was a dump of the memory that was incremented during the flow of the program.
+The output, after correct input, was a dump of the memory region with our instrumentation counters, 81 ints in total.
 
-## Decompiled trees
+The input, as well as some parts of the flag, get pushed into a binary tree with some kind of sorting.
+We figured out the instrumentation depends on the paths taken in the tree implementation, so we started to reverse it.
 
-We tried to reason what the program did to our input, because it wasn't particularly obvious.
+## Decompiled Trees
+
+*WOAH! Decompilation in C works. All these years they told us it's an unsolved problem...*
+
 The binary first created an empty tree, to which it appended our input character by character. After that it appended the n characters of the flag at the indexes we specified.
 
-So we tried to figure out how the tree exactly behaved and how it responded input. Weirdly enough new nodes were always appended at the root of the tree, and it had some kind of self balancing. When balancing the nodes with higher values should go to the 2nd branch -- but it wasn't particularly obvious from the counters, or from the debugger we used on the decompiled code.
+We tried to grasp how the tree was behaved.
+Wierdly enough, new nodes were always appended at the root of the tree, and it had some kind of self balancing.
+However, we had no clue how it balanced.
+So we built ripped the tree out and _built our own tool_.
 
-To better wrap our head around how chars could be deducted from the counters, we added a bit of functionality to the decompiled C Code which printed the tree after every added character.
+Turns out, Ghidra has an "Export to C/C++ option".
 
-There were some counters which were in the *"sorting"* algorithm of the tree that seemed particularly interesting, however we failed to deduct a straightforward relationship between the counter and the characters we were interested in.
+![Export](export.png)
+![Decompile](decompile.png)
+
+That's right: after a few more changes (the performance counters were undefined in the exported C code, we added some int variables manually), we were able to step through our own source code...
+
+Here is some decompiled source code in VS Code (see [sanitize_tree.c](sanitize_tree.c) for the complete version):
+
+```c
+...
+// Our instrumentation counters look like this
+int enter_new_tree = 0;
+int leave_new_tree = 0;
+
+typedef struct tree_node tree_node, *Ptree_node;
+
+void _exit(int no) {
+  exit(no);
+} 
+
+// This is unchanged, straight from the reversed ghidra struct.
+// 0x1 - 0x3 are probably padding bytes, or something unused.
+struct tree_node {
+    char input_byte;
+    undefined field_0x1;
+    undefined field_0x2;
+    undefined field_0x3;
+    uint height_maybe;
+    struct tree_node * parent;
+    struct tree_node * tree_right;
+    struct tree_node * next_or_left;
+};
 
 
-## From counter-dump to Hash function 
+void increment(int *incme)
+{
+  *incme = *incme + 1;
+}
+...
+```
 
-Firstly YES, these counters aren't a good hash function in itself, since they weren't particularly collision resistant, since the binary only ever compared two values to decide its path on where to go next. That meant using the same "base tree" (the first 32 Characters inputted) the character sequence "aaab" and "aaac" were probably indistinguishable in most of the cases.
+To better wrap our head around how chars could be deducted from the counters, we added a bit of functionality to the decompiled C Code:  a graphical output of the balanced tree after each added character.
+
+The input AGBDCCAF would result in the following tree:
+
+```sh
+ enoflag@enovm  ~/ctf/0ctf19  ./sanitize_tree AGBDCCAF
+==============
+Round 0: Added [A]:
+
+A  [0]
+
+==============
+Round 1: Added [G]:
+
+v---------G  [0]
+
+A  [1]
+```
+
+[...]
+
+```
+==============
+Round 6: Added [A]:
+
+A  [0]
+
+          v---------C  [0]
+
+^---------C  [1]
+
+                              v---------D  [0]
+
+                    v---------B  [1]
+
+                              ^---------G  [0]
+
+          ^---------A  [2]
+
+==============
+Round 7: Added [F]:
+
+                    v---------D  [0]
+
+          v---------B  [1]
+
+                    ^---------G  [0]
+
+v---------A  [2]
+
+                    v---------C  [0]
+
+          ^---------C  [1]
+
+                    ^---------F  [0]
+>>>>>>> added images
+
+A  [3]
+```
+
+This was a nice side project, however turned out to be useless in the long run.
+While there were some counters which were in the *"sorting"* algorithm of the tree that seemed particularly interesting, we failed to grasp the actual tree-balancing algorithm enough to deduct a relationship between the counter and the input.
+
+This is left as an exercise to the reader, feel free to play around with [the source](sanitize_tree.c).
+
+## From Counter-Dump to Hash Function to Flag
+
+Firstly YES, these counters aren't a good hash function in itself, since they weren't particularly collision resistant, since the binary only ever compared two values to decide its path on where to go next. That meant using the same "base tree" (the first 32 input characters inputted) the character Sequence "aaab" and "aaac" were probably indistinguishable in most of the cases.
 
 However if the right base tree was used "aaab" would end up with slightly different counter values based upon the *"sorting"*.
 That meant using the same unknown char sequence on *enough* base trees, they would differ in some of them.
