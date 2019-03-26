@@ -183,11 +183,11 @@ if ((byte)next->input_byte < (byte)current->input_byte) {
 However, if the right base tree was used "aaab" would end up with slightly different counter values based upon the *"sorting"*.
 That meant using the same unknown char sequence on *enough* base trees, they would differ in some of them.
 
-Thinking we would need to create a rainbow table for the needed combinations, I hashed the concatenated output at the end with *md5* to more easily tell if they were unique.
+Thinking we would need to create a rainbow table for the needed combinations, we hashed the concatenated output at the end with *md5* to more easily tell if they were unique.
 
 After generating a huge amount of table entries and trying our first attack,
-it dawned on me that we could massively reduce the search space, since we partially knew the plaintext. ``` flag{ ..... } ```
+it dawned on me that we could massively reduce the search space, since we partially knew the plaintext `flag{ ..... }`.
 
-Since we could pick characters to our liking it was enough to pick one unknown character, using $c + "lag" for the unknown string.
+Since we could pick characters to our liking it was enough to pick one unknown character, using `$c` + `"lag"` for the string.
 
-This way it was only needed to generate entries for the ~ 100 Characters, that could end up in the flag using the standard ASCII range.
+This way, it was only needed to generate entries for the ~ 100 Characters, that could end up in the flag using the standard ASCII range.
