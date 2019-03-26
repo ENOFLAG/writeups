@@ -36,7 +36,7 @@ The output was a dump of the memory that was incremented during the flow of the 
 We tried to reason what the program did to our input, because it wasn't particularly obvious.
 The binary first created an empty tree, to which it appended our input character by character. After that it appended the n characters of the flag at the indexes we specified.
 
-So we tried to figure out how the tree exactly behaved and how it responded input. Wierdly enouth new nodes were always appended at the root of the tree, and it had some kind of self balancing. When balancing the nodes with higher values should go to the 2nd branch -- but it wasnt paticularly obvious from the counters, or from the debugger we used on the decompiled code.
+So we tried to figure out how the tree exactly behaved and how it responded input. Weirdly enough new nodes were always appended at the root of the tree, and it had some kind of self balancing. When balancing the nodes with higher values should go to the 2nd branch -- but it wasn't particularly obvious from the counters, or from the debugger we used on the decompiled code.
 
 To better wrap our head around how chars could be deducted from the counters, we added a bit of functionality to the decompiled C Code which printed the tree after every added character.
 
@@ -45,6 +45,9 @@ There were some counters which were in the *"sorting"* algorithm of the tree tha
 
 ## From counter-dump to Hash function 
 
-Firstly YES, these counters aren't a good hash function in itself, since they weren't particularly collision resistant, since the binary only ever compared two values to decide its path on where to go next. That meant using the same "base tree" (the first 32 Charactes inputted) the character Sequence "aaab" and "aaac" were probably indistinguishable in most of the cases.
+Firstly YES, these counters aren't a good hash function in itself, since they weren't particularly collision resistant, since the binary only ever compared two values to decide its path on where to go next. That meant using the same "base tree" (the first 32 Characters inputted) the character sequence "aaab" and "aaac" were probably indistinguishable in most of the cases.
 
-However if the right base tree was used "aaab" would end up with slightly different counter values based upon the *"sorting"*. 
+However if the right base tree was used "aaab" would end up with slightly different counter values based upon the *"sorting"*.
+That meant using the same unknown char sequence on *enough* base trees, they would differ in some of them.
+
+Thinking we would need to create a rainbow table 
