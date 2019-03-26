@@ -111,7 +111,7 @@ A  [1]
 
 [...]
 
-```
+```sh
 ==============
 Round 6: Added [A]:
 
@@ -157,9 +157,30 @@ This is left as an exercise to the reader, feel free to play around with [the so
 
 ## From Counter-Dump to Hash Function to Flag
 
-Firstly YES, these counters aren't a good hash function in itself, since they weren't particularly collision resistant, since the binary only ever compared two values to decide its path on where to go next. That meant using the same "base tree" (the first 32 input characters inputted) the character Sequence "aaab" and "aaac" were probably indistinguishable in most of the cases.
+Firstly YES, these counters aren't a good hash function in itself, since they weren't particularly collision resistant: the binary only ever compares two values to decide its path on where to go next.
+That meant using the same "base tree" (the first 32 input characters inputted) the character Sequence "aaab" and "aaac" are probably indistinguishable in most of the cases.
 
-However if the right base tree was used "aaab" would end up with slightly different counter values based upon the *"sorting"*.
+The important part of the tree:
+
+```c
+if ((byte)next->input_byte < (byte)current->input_byte) {
+  if (prev == (tree_node *)0x0) {
+    increment(&a_t_smaller_input_null);
+    *new_head_ret = next;
+  }
+  else {
+    increment((int *)&a_t_smaller_input_byte);
+    prev->next_or_left = next;
+  }
+  if (current == next) {
+            // ptr->input_byte ==, ptr != -> impossible
+    increment((int *)&a_t_smaller_input_impossible);
+  }
+  else {
+    ...
+```
+
+However, if the right base tree was used "aaab" would end up with slightly different counter values based upon the *"sorting"*.
 That meant using the same unknown char sequence on *enough* base trees, they would differ in some of them.
 
 Thinking we would need to create a rainbow table for needed combinations, I hashed the concatenated output at the end with *md5* to more easily tell if they were unique.
