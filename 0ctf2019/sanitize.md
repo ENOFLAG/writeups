@@ -52,6 +52,7 @@ That meant using the same unknown char sequence on *enough* base trees, they wou
 
 Thinking we would need to create a rainbow table for needed combinations, I hashed the concatenated output at the end with *md5* to more easily tell if they were unique.
 
+After generating a huge amount of table entries and trying our first attack, it dawned on me that 
 
 
 
