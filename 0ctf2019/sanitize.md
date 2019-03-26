@@ -24,7 +24,7 @@ Apart from this, the binary only printed "Invalid" - so first we analyzed what k
 The general sequence of events was:
 
 1. Input a string of length < than 32
-2. Input a number n
+2. Input a number n <= 4
 3. Input n numbers
 4. Get some kind of output
 
@@ -162,4 +162,10 @@ Firstly YES, these counters aren't a good hash function in itself, since they we
 However if the right base tree was used "aaab" would end up with slightly different counter values based upon the *"sorting"*.
 That meant using the same unknown char sequence on *enough* base trees, they would differ in some of them.
 
-Thinking we would need to create a rainbow table 
+Thinking we would need to create a rainbow table for needed combinations, I hashed the concatenated output at the end with *md5* to more easily tell if they were unique.
+
+
+
+
+
+
