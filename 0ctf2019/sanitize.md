@@ -190,11 +190,9 @@ it dawned on me that we could massively reduce the search space, since we partia
 
 Since we could pick characters to our liking it was enough to pick one unknown character, using `$c` + `"lag"` for the string.
 
-This way it was only needed to generate entries ([generator script](gentable_new.py)) for the ~ 100 Characters, that could end up in the flag using the standard ASCII range.
+This way, it's only necessary to generate one single entry ([generator script](gentable_new.py)) for each of the ~ 100 chars that could end up in the flag, instead of one for each 4 letter combination.
 
-Generating the same hash for each unknown character against the remote Endpoint,
-"basically just comparing a whole bunch of output" 
--- we compared it to our locally generated [Rainbow table](table2/table_new2.table) and deduced the flag char by char.
+After generating our map locally, we then got one hash for each each character of the actual flag from the remote endpoint by comparing it with our locally generated [rainbow table](table2/table_new2.table) char by char.
 
 After about 1 hour of talking to the service our [exploit](exploit2.py) finally spat out the flag:
 _*flag{fr0M_C0vEr4ge_To_Fl4G_And_Enj0Y_0cTF_2Ol9!}*_
