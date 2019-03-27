@@ -157,7 +157,7 @@ This is left as an exercise to the reader, feel free to play around with [the so
 
 ## From Counter-Dump to Hash Function to Flag
 
-Firstly YES, these counters aren't a good hash function in itself, since they weren't particularly collision resistant: the binary only ever compares two values to decide its path on where to go next.
+Firstly YES, these counters aren't a good hash function in itself, since they weren't particularly collision resistant: The binary only ever compares two values to decide its path on where to go next.
 That meant using the same "base tree" (the first 32 input characters inputted) the character Sequence "aaab" and "aaac" are probably indistinguishable in most of the cases.
 
 The important part of the tree:
@@ -190,4 +190,13 @@ it dawned on me that we could massively reduce the search space, since we partia
 
 Since we could pick characters to our liking it was enough to pick one unknown character, using $c + "lag" for the unknown string.
 
-This way it was only needed to generate entries for the ~ 100 Characters, that could end up in the flag using the standard ASCII range.
+This way it was only needed to generate entries ([generator script](gentable_new.py)) for the ~ 100 Characters, that could end up in the flag using the standard ASCII range.
+
+Generating the same hash for each unknown character against the remote Endpoint,
+"basically just comparing a whole bunch of output" 
+-- we compared it to our locally generated [Rainbow table](table2/table_new2.table) and deduced the flag char by char.
+
+After about 1 hour of talking to the service our [exploit](exploit2.py) finally spat out the flag:
+_*flag{fr0M_C0vEr4ge_To_Fl4G_And_Enj0Y_0cTF_2Ol9!}*_
+
+
