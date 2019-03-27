@@ -604,7 +604,7 @@ int main(int argc,char **argv)
     //increment(&main_tree_loop_1);
     printf("\n==============\nRound %lu: Added [%c]:\n\n", counter, buf[counter]);
     print_tree(tree_ptr);
-    print_counters();
+    //print_counters();
     counter = counter + 1;
   }
   counter = 0;
