@@ -23,14 +23,16 @@ Apart from this, the binary only printed "Invalid" - so first we analyzed what k
 
 The general sequence of events was:
 
+```
 1. Input a string of length < than 32
 2. Input a number n <= 4
 3. Input n numbers
 4. Get some kind of output
+```
 
 ![Sequence of Events](ServiceInteraction.png)
 
-For this sequence to work the binary required a file called flag, and it used the numbers as indexes from where to read.
+For this sequence to work the binary required a file called `flag`, and used the numbers as indexes which parts of the flag to read.
 
 The output, after correct input, was a dump of the memory region with our instrumentation counters, 81 ints in total.
 
@@ -41,12 +43,12 @@ We figured out the instrumentation depends on the paths taken in the tree implem
 
 *WOAH! Decompilation in C works. All these years they told us it's an unsolved problem...*
 
-The binary first created an empty tree, to which it appended our input character by character. After that it appended the n characters of the flag at the indexes we specified.
+The binary first creats an empty tree, to which it appends our input, character by character. After that it appends the n characters of the flag at the indexes we specify.
 
-We tried to grasp how the tree was behaved.
+We tried to grasp how the tree behaved.
 Wierdly enough, new nodes were always appended at the root of the tree, and it had some kind of self balancing.
 However, we had no clue how it balanced.
-So we built ripped the tree out and _built our own tool_.
+So we ripped the tree out and _built our own tool_.
 
 Turns out, Ghidra has an "Export to C/C++ option".
 
@@ -70,6 +72,7 @@ void _exit(int no) {
 } 
 
 // This is unchanged, straight from the reversed ghidra struct.
+// Ghidra automatically created this struct (using "Auto Create Structure"), we just renamed some members.
 // 0x1 - 0x3 are probably padding bytes, or something unused.
 struct tree_node {
     char input_byte;
@@ -90,7 +93,7 @@ void increment(int *incme)
 ...
 ```
 
-To better wrap our head around how chars could be deducted from the counters, we added a bit of functionality to the decompiled C Code:  a graphical output of the balanced tree after each added character.
+To better wrap our head around how chars could be deducted from the counters, we added a bit of functionality to the decompiled C code:  a graphical output of the tree after each added character.
 
 The input AGBDCCAF would result in the following tree:
 
