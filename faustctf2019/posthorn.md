@@ -1,6 +1,5 @@
 # PostHorn
 
-FaustCTF 2018
 ![posthorn pdf](O89YgWk.png)
 
 PostHorn was a service where we got first blood (🎉🎉🎉) in the 2019 FAUST CTF featuring Post-based technologies, such as
@@ -9,7 +8,7 @@ PostHorn was a service where we got first blood (🎉🎉🎉) in the 2019 FAUST
 - Postgress 
 - Postscript
 
-It featured a CGI Webserver binary (launched by uwsgi.ini):
+It had a CGI Webserver binary (launched by uwsgi):
 ![ghidra output](SGpPW9L.png)
 
 The binary then executed PostScript files (the stuff that renders PDFs) (!!!) and forwarded the output of ghostscript to the browser.
@@ -26,7 +25,7 @@ But it's very different from most things we were used to, for example defining a
 ```
 
 Its primary use is to render PDFs.
-Of course, the interface in the browser was PDFs and embedded forms <3, such as [this](index.pdf):
+Of course, the interface in the browser was PDFs and embedded forms <3, such as [this](index.pdf).
 
 Due to recent PS-Based CVEs, we found a pretty good introduction here:
 https://www.fortinet.com/blog/threat-research/debugging-postscript-with-ghostscript.html
@@ -36,9 +35,9 @@ https://www.fortinet.com/blog/threat-research/debugging-postscript-with-ghostscr
 All users and posts were added to a Postgress DB.
 The Ghostscript interpreter (interpreting PostScript) then execed `psql` to communicate with the PostScript Database.
 
-The flagbot dropped were droped into there - as message of a user.
+The flagbot dropped flags into the database (using POSTs of course) - as message of a user.
 
-The `psql.ps` file was the following:
+The `psql.ps` file (a postscript library to interact with postgress), was the following:
 
 ```PostScript
 /sqlgetrow{
@@ -71,19 +70,21 @@ In the function(?) (operator?) `/sqlforallresults`, the returns from postscript 
 The docs state:
 > *run* is a convenience operator that combines the functions of _file_ and _exec_
 
-Inside the sql file, we find: `SELECT format(' (%s)  (%s) ', ...` -> after some deugging, it was clear that the result is then directly interpreted by `gs` (backets being the quotes for strings).
-That means, anything with brackets we can inject here will allow for PostScript RCE!
+Inside a called postgress sql function, we find: `SELECT format(' (%s)  (%s) ', ...` -> after some deugging, it was clear that the result is then directly interpreted by `gs` (brackets being the quotes for strings) and stored in a dict.
+That means, anything with brackets can inject here.
+
+Full PostScript RCE!
 
 ## The Exploit
 
 ![flag output pdf](flag.png)
-To exploit, we posted:
+As initial PoC exploit, we posted:
 
 ```SQL
 SELECT post FROM post_table WHERE user_id in \(SELECT user_id from user_table where username in \('username', 'username2', 'username_n'\));) sqlgetrow show (nextpost
 ```
 
-Since psql then formats this to:
+Since the sql function in `psql` (see the patched version below) then formats this to:
 
 ```PostGress
   (SELECT post FROM post_table WHERE user_id in \(SELECT user_id from user_table where username in \('username', 'username2', 'username_n'\));) sqlgetrow show (nextpost) (some_id)  
@@ -99,9 +100,10 @@ At the same time, we started patching.
 
 ## The Patch
 
-To fix this issue we sanitized the output of the two provided postgres functions. In particular usernames and the content of the post could be used to trip up the postscript parsing.
+To fix this issue we sanitized the output of the two provided postgres functions. 
+In particular usernames and the content of posts could be used to trip up the postscript parsing.
 
-We replaced the parentheses with letters, by using the `translate` function, rigerously repacing `(` with `a` and `)` with `b`.
+As a quick fix, we replaced the parentheses with letters, by using the `translate` function, rigerously repacing `(` with `a` and `)` with `b`.
 
 The resulting functions (the original versions were the same without translate) are:
 
