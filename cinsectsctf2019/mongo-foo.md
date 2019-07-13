@@ -3,7 +3,7 @@
 mongo-foo was a tiny cli key-value store written in python, backed by a mongodb.
 It offered the commands `encrypt`, `decrypt`, `store` and `retrieve`, where `decrypt` was broken and only `store` and `retrieve` were being used.
 
-After a successful `store`, you received an id, which you could supply in `retrieve`.
+After a successful `store`, you received a random id, which you could supply in `retrieve`.
 
 There were no vulnerabilities in the service, only the mongodb was not binding to localhost only. Many teams did not notice, because the vulnbox had an unintended mongodb which was listening on 127.0.0.1 only:
 
