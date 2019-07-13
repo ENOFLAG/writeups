@@ -1,6 +1,6 @@
 # python-foo
 
-ython-foo was a tiny cli key-value store written in python, backed by a mongodb. It offered the commands `encrypt`, `decrypt`, `store` and `retrieve`.
+python-foo was a tiny cli key-value store written in python, backed by a mongodb. It offered the commands `encrypt`, `decrypt`, `store` and `retrieve`.
 
 After a successful store, you received a random id, which you could supply in retrieve.
 
@@ -34,7 +34,6 @@ def caisheoquaMeeth6wo5waa4Eefaigh(a: int, b: bytes, c: str) -> str:
 So in troll.py, `int` returned -42 if the argument was `0985432976321076540985432987`. This caused the `debug` function to leak `RECORDS`, which contained all encrypted values, which you could decrypt with the `decrypt` function.
 ```
 def debug(op: int):
-    return
     print('operation: ', op)
     print('Global variables:')
     print('\n'.join(
@@ -66,7 +65,7 @@ The load results were compared, and if they were not equal, `debug` was called:
     except AssertionError:
         debug(2)  # write operation
 ```
-To exploit this you had to ensure the race condition occurs, so you threw concurrent `store_record` commands at it you got the debug output.
+To exploit this you had to ensure the race condition occurs, so you threw concurrent `store_record` commands at it until you got the debug output.
 
 Removing the debug function fixes this issue.
 
