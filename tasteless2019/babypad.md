@@ -6,6 +6,8 @@ Category: cry
 
 Solves: 51
 
+Points: 154
+
 We heard this kind of enription is super securr, so we'll just give you the flag encripted!
 
 ## Challenge
@@ -55,8 +57,6 @@ int main() {
     return 0;
 }
 ```
-
-## Solution
 
 We first started analyzing this rather small challenge. 
 
@@ -115,6 +115,8 @@ fwrite(ciphertext, flag_length, 1, stdout);
 
 Now this isn't exactly a big attack surface. 
 We assumed that `/dev/urandom` is actually random enough so there is no attacking the randomness.
+
+## Solution
 
 The important part of this challenge is that the length of the OTP is checked against the length of the plaintext. Because of how `strlen` works in C, the OTP can not include a null byte. If the random OTP does contain a null byte the `strlen` will terminate the string there, the lengths wouldn't match and the assert would stop execution.
 
