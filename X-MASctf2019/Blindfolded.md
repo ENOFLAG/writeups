@@ -26,7 +26,7 @@ The service itself seemed like your standard note taking service and the author 
 
 ![Challenge Description](Blindfolded/Blindfolded-Banner.png)
 
-Judging by the menu Label one could quickly assume which option corresponded to which heap operation.
+Judging by the menu labels one could quickly assume which option corresponded to which heap operation.
 
 <ol>
     <li> New    => malloc </li>
@@ -35,7 +35,7 @@ Judging by the menu Label one could quickly assume which option corresponded to 
     <li value=1337> Realloc => realloc (duh!) </li>
 </ol>
 
-This was one of those binaries that never prints **any** user input. This reminds me of a libc-leak-vector which comes afaik from *@angelboy* as well as his challenge *Baby_Tcache* originally from HITCON CTF 2018 with [this writeup by bi0s](https://vigneshsrao.github.io/babytcache/) being a great ressource for it.\
+This was one of those binaries that never prints **any** user input. This reminds me of a libc-leak-vector which comes afaik from *@angelboy* as well as his challenge *Baby_Tcache* originally from HITCON CTF 2018 with [this writeup by bi0s](https://vigneshsrao.github.io/babytcache/) being a great resource for it.\
 This is partially confirmed by the Dockerfile since `Ubuntu:18.04` provides `glibc version 2.27` -- the same as baby_tcache.
 
 
@@ -221,7 +221,7 @@ If you've read the Background Info you know that Tcache-Chunks only have a forwa
 In contrast to that both the first and the last chunks of "regular" bins (that meaning small, large and unsorted) are equipped with a pointer towards the *main_arena* which is the centralized heap management structure in the libc.
 
 It has a distance of about 0x4000 (I can't remember and I'm to lazy to check) bytes to the *stdout*-Structure.
-ASLR only randomizes addresses at page boundaries so the the interval between possible 0x1000, meaning the last three nibbles of the address are static.
+ASLR only randomizes addresses at page boundaries so the interval between possible positions is 0x1000, meaning the last three nibbles of the address are static.
 So once we have this pointer we can successfully exploit it with a 1 in 16 chance.
 
 A little clarification: You have a 1 in 16 chance to overwrite a pointer to a chosen location for **all**
