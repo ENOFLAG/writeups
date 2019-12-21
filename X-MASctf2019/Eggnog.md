@@ -6,17 +6,17 @@
 
 ## General Overview
 Eggnog was a pwn challenge in this (2019's) X-Mas CTF.
-This CTF i managed so solve quite a few of their pwn chals so further writeups *may* come.
+This CTF i managed to solve quite a few of their pwn chals so further writeups *may* come.
 
 Eggnog itself was a small challenge that asked a user to provide some eggs for it.
 
 ![Challenge Description](Eggnog-interaction.png)
 
-As the Text pretty clearly states it Filters ones input with a "linear congruent generator" (LCG) in the background.
+As the text pretty clearly states it filters ones input with a "linear congruent generator" (LCG) in the background.
 Those are notorious for being easily predictable as "linear" in the name should give away so it was an immediate red flag.
 (Nevertheless searching for "password generator in c" on google is pretty sad considering the rand() function is also a LCG.)
 
-If one would decide to cook the recipe shown in the Image the connection would immediately hang indicating that it either jumps to the filtered input as shellcode or ROPping with it.
+If one would decide to cook the recipe shown in the image the connection would immediately hang indicating that it either jumps to the filtered input as shellcode or ROPping with it.
 
 Upon playing a few rounds with the service, I went and reversed how exactly the LCG was implemented.
 
@@ -135,7 +135,7 @@ void loop(void)
 }
 ```
 
-The integers in the outputted by "Filtered Eggs" are directly the state of the LCG and are used to kick out chars from our shellcode before jumping to it.
+The integers in the outputted by "Filtered eggs" are directly the state of the LCG and are used to kick out chars from our shellcode before jumping to it.
 
 Also important to note that the LCG is **not** reinitialized between attempts when saying no.
 This is where the challenge basically shifted to a bit of crypto.
