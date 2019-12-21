@@ -6,7 +6,7 @@
 [folder](Blindfolded/public)
 
 ## General Overview
-Blindfolded was a pwn challenge in this (2019's) X-Mas CTF.
+Blindfolded was a pwn challenge in this (2019's) X-MAS CTF.
 It was also the first challenge I tried and solved over the course of this CTF. 
 
 As it correctly states heap-challenge binaries are completely useless. That's why all it provided was this [Dockerfile](Blindfolded/public/Dockerfile):
