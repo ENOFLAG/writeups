@@ -63,7 +63,7 @@ Using that upon a real allocation you would have a double free which is a heap c
 (If I am losing you already, you'll probably need to read up a bit of background info first (or later) like this one [glibc heap implementation by azeria-labs](https://azeria-labs.com/heap-exploitation-part-1-understanding-the-glibc-heap-implementation/))
 
 ### Realloc and Exit
-For completeness sake I'll also include realloc and exit in this writeup also they weren't strictly necessary.
+For completeness sake I'll also include realloc and exit in this writeup, even though they weren't strictly necessary.
 Exit is probably self-explanatory as it does exactly what it says.
 
 Realloc on the other hand was a bit of a wierd addition.
