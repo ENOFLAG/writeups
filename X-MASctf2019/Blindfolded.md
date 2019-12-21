@@ -17,7 +17,7 @@ FROM Ubuntu:18.04
 # [REDACTED]
 ```
 
-Frankly as soon as I read that I was hooked, since I've rarely/never such a pwn challenge without the binary provided.
+Frankly as soon as I read that I was hooked, since I've rarely/never seen such a pwn challenge without the binary provided.
 However as anyone who has experience in heap-exploitation can/will tell you this Dockerfile itself is already a great hint. (We'll come back to that later)
 
 ## Playing with the service
