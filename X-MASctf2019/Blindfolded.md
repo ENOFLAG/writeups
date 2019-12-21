@@ -77,7 +77,7 @@ It tells you something like that to realloc a single buffer and lets you also ca
 
 To this date I still haven't figured out why this addition was made and I'd like to find out -- "but in the end it doesn't really matter ". **¯\\_(ツ)_/¯**
 
-(If you know *@_mmunier* on twitter although im not active on there)
+(If you know *@_mmunier* on twitter although im not really active on there)
 
 ## Rebuilding the binary 
 
