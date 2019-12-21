@@ -16,7 +16,7 @@ As the text pretty clearly states it filters ones input with a "linear congruent
 Those are notorious for being easily predictable as "linear" in the name should give away so it was an immediate red flag.
 (Nevertheless searching for "password generator in c" on google is pretty sad considering the rand() function is also a LCG.)
 
-If one would decide to cook the recipe shown in the image the connection would immediately hang indicating that it either jumps to the filtered input as shellcode or ROPping with it.
+If one would decide to cook the recipe shown in the image the connection would immediately hang indicating that it either jumps to the filtered input as *shellcode* or *ROPping* with it.
 
 Upon playing a few rounds with the service, I went and reversed how exactly the LCG was implemented.
 
@@ -135,7 +135,7 @@ void loop(void)
 }
 ```
 
-The integers in the outputted by "Filtered eggs" are directly the state of the LCG and are used to kick out chars from our shellcode before jumping to it.
+The integers outputted by "Filtered eggs" are directly the state of the LCG and are used to kick out chars from our shellcode before jumping to it.
 
 Also important to note that the LCG is **not** reinitialized between attempts when saying no.
 This is where the challenge basically shifted to a bit of crypto.
