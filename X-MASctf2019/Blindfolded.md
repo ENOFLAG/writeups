@@ -9,7 +9,7 @@
 Blindfolded was a pwn challenge in this (2019's) X-Mas CTF.
 It was also the first challenge I tried and solved over the course of this CTF. 
 
-As it correctly states heap-challenge binaries are compleatly useless. That's why all it provided was this [Dockerfile](Blindfolded/public/Dockerfile):
+As it correctly states heap-challenge binaries are completly useless. That's why all it provided was this [Dockerfile](Blindfolded/public/Dockerfile):
 
 ``` Dockerfile
 FROM Ubuntu:18.04
