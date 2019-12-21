@@ -3,6 +3,7 @@
 *21 December 2019 by MMunier* 
 
 ![Challenge Description](Eggnog.png)
+[chall](eggnog)
 
 ## General Overview
 Eggnog was a pwn challenge in this (2019's) X-Mas CTF.
