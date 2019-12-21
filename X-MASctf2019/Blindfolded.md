@@ -6,7 +6,7 @@
 [folder](Blindfolded/public)
 
 ## General Overview
-Blindfolded was a pwn challenge in this (2019's) X-MAS CTF.
+Blindfolded was a pwn challenge in this years (2019) X-MAS CTF.
 It was also the first challenge I tried and solved over the course of this CTF. 
 
 As it correctly states heap-challenge binaries are completely useless. That's why all it provided was this [Dockerfile](Blindfolded/public/Dockerfile):
@@ -26,7 +26,7 @@ The service itself seemed like your standard note taking service and the author 
 
 ![Challenge Description](Blindfolded/Blindfolded-Banner.png)
 
-Judging by the menu Label one could quickly assume with option corresponded to which heap operation.
+Judging by the menu Label one could quickly assume which option corresponded to which heap operation.
 
 <ol>
     <li> New    => malloc </li>
@@ -35,38 +35,39 @@ Judging by the menu Label one could quickly assume with option corresponded to w
     <li value=1337> Realloc => realloc (duh!) </li>
 </ol>
 
-As quite a few challenges already had, this binary is one of those that never prints any user input. This is quite telling of a libc-leak-vector which comes afaik from *@angelboy* as well as his challenge *Baby_Tcache* originally from HITCON CTF 2018 with [this writeup by bi0s](https://vigneshsrao.github.io/babytcache/) being a great recource for it.\
-This is partially confimed by the Dockerfile since `Ubuntu:18.04` provides `glibc version 2.27` -- the same as baby_tcache.
+This was one of those binaries that never prints **any** user input. This reminds me of a libc-leak-vector which comes afaik from *@angelboy* as well as his challenge *Baby_Tcache* originally from HITCON CTF 2018 with [this writeup by bi0s](https://vigneshsrao.github.io/babytcache/) being a great ressource for it.\
+This is partially confirmed by the Dockerfile since `Ubuntu:18.04` provides `glibc version 2.27` -- the same as baby_tcache.
 
 
 ### Creating a note 
-Upon creating a new Note you could specify an index and the size of the alllocation.
-It let you write arbitrary content afterwards but as far as I could tell one could not write OOB.
+Upon creating a new Note you could specify an index and the size of the allocation.
+It lets you write arbitrary content afterwards but as far as I could tell one could not write OOB.
 
 ![Challenge Description](Blindfolded/Blindfolded-malloc.png)
 
-The index was bound between 0 and 9 which lead me to believe that the retuned pointers were stored into some kind of global array that only had 10 slots. You also couldn't allocate over a slot that was alreadly used.
+The index was bound between 0 and 9 which lead me to believe that the returned pointers were stored into some kind of global array that only had 10 slots. You also couldn't allocate over a slot that was alreadly used.
 
-The size of the allocations it would allow were also capped at some value but I never bothered to figure out what exactly it was. I just knew was somewhere larger than 0x100 and smaller than 0x400. 
+The size of the allocations it would allow were also capped at some value but I never bothered to figure out what exactly it was. I just knew it was somewhere between 0x100 and 0x400. 
 
-All in all allocations of an arbitrary size and content are already quite a powerful primitive, however now vulnerability was found in this part of the binary.
+All in all allocations of an arbitrary size and content are already quite a powerful primitive, however no vulnerability was found in this part of the binary.
 
 ### Deleting notes
 
-As expected the vulnerability was in the deleting part of the binary. Confirming the array theory deletion of a note also wanted an index for which Note to delete.
+As expected the vulnerability was in the deleting Option.
+Similarly to the guessed array indices in the creation of the notes deleting a Note required an index too.
 
 ![Challenge Description](Blindfolded/Blindfolded-free.png)
 
 However just deleting an entry that doesn't exist works perfectly fine and still decreases the counter. Since it was hinted that the vulnerability should be pretty obvious I deemed that this was probably an unchecked free.
 
-Using that upon a real allocation you would have a double free which is a heap corruption that is definetly exploitable,especially in this version of libc (*2.27*) with basically *unchecked Tcaches*. \
-(If I am losing you already, you'll probably need to read up a bit of background info first (or later) like this one [glibc heap implementation by azeria-labs](https://azeria-labs.com/heap-exploitation-part-1-understanding-the-glibc-heap-implementation/))
+Using that upon a real allocation you would have a double free which is a heap corruption that is definetly exploitable, especially in this version of libc (*2.27*) with basically *unchecked Tcaches*. \
+(If I am losing you already, you'll probably need to read up a bit of background info first (or later) like [glibc heap implementation by azeria-labs](https://azeria-labs.com/heap-exploitation-part-1-understanding-the-glibc-heap-implementation/))
 
 ### Realloc and Exit
 For completeness sake I'll also include realloc and exit in this writeup, even though they weren't strictly necessary.
 Exit is probably self-explanatory as it does exactly what it says.
 
-Realloc on the other hand was a bit of a wierd addition.
+Realloc on the other hand was a bit of a weird addition.
 ```
 Ummmm... But that's forbidden... I could let you... I have a bad feeling about this... 
 I'll give you only one chance... But first, let me clean the stack a little bit... Done!
@@ -77,13 +78,14 @@ It tells you something like that to realloc a single buffer and lets you also ca
 
 To this date I still haven't figured out why this addition was made and I'd like to find out -- "but in the end it doesn't really matter ". **¯\\_(ツ)_/¯**
 
-(If you know *@_mmunier* on twitter although im not really active on there)
+(If you know write me (*@_mmunier*) on twitter although im not really active there)
 
 ## Rebuilding the binary 
 
-As I deemed it pretty unlikely to be able to exploit it completely blind i tried to rebuild the essential features the binary.
+As I deemed it pretty unlikely to be able to exploit it completely blind i tried to rebuild the essential features of the binary.
 
 Based on my above mentioned observations this is what I came up with.
+
 ``` c
 #include <stdlib.h>
 #include <stdio.h>
@@ -204,30 +206,32 @@ int main(){
 As you can probably tell non-essential featues were not followed too closely by me. ^^
 
 ## The Exploit
-The unchecked heap allocations can lead to a double free and so allocations at arbitrary locations. This is done via repeatedly freeing the same pointer and then overwriting the fwd pointer of this tcache-bin (beause of the double free it still in it) to return a chunk in a location chosen by us. [Demo by shellphish/how2heap](https://github.com/shellphish/how2heap/blob/master/glibc_2.26/tcache_poisoning.c) \
-However since we have no info leak over the binary, heap, stack or libc (in hindsight i should've checked if the binary even had PIE enabled), it doesn't let us hijack the controlflow immedieately.
-
-Thus we need a info-leak of libc where all that stuff by angelboy comes in.
+The unchecked deletions result in double frees, which can be used to force malloc returning Pointers into arbitrary locations.
+This is done via repeatedly freeing the same pointer and then overwriting the fwd pointer of this tcache-bin (beause of the double free that's still in it) to return a chunk in a location chosen by us. [Demo by shellphish/how2heap](https://github.com/shellphish/how2heap/blob/master/glibc_2.26/tcache_poisoning.c) \
+However since we have no info leak over the binary, heap, stack or libc (in hindsight I should've checked if the binary even had PIE enabled), it doesn't let us hijack the controlflow immediately. With PIE and RELRO not fully enabled it might have been possible to overwrite the GOT of the binary directly, however I never followed that idea to its conclusion.
 
 Lets say we have a pointer into the libc on our heap.
 If the difference between it and the `_IO_2_1_stdout_`-Structure is small enough we can partially overwrite it to point there without much bruteforce, even if ASLR is enabled.\
 
-Overwriting it with specific junk [slides 62+ ](https://www.slideshare.net/AngelBoy1/play-with-file-structure-yet-another-binary-exploit-technique)leads it to believe that it's buffer is filled with stuff from the bss-section of libc and thus prints it out upon the next invocation of puts/printf ...\
-Which is how we leak our libc.
+Overwriting the stdout-Structure with specific junk seen in [slides 62+](https://www.slideshare.net/AngelBoy1/play-with-file-structure-yet-another-binary-exploit-technique) or copied directly from [here](https://vigneshsrao.github.io/babytcache/), leads it to believe that it's buffer is filled with stuff from the bss-section of libc and thus prints the our enlarged buffer upon the next invocation of puts/printf ...\
+Which is how we leak our libc. 
 
-Now the question to ask is how do we get this libc-pointer and how do we allocate a chunk there.
-If you've read the Background Info Tcache-Chunks only have a forward pointer to the next free item on their bin.
+Now the question at hand is how do we get this libc-pointer and how do we allocate a chunk there.
+If you've read the Background Info you know that Tcache-Chunks only have a forward pointer to the next free item on their bin.
 In contrast to that both the first and the last chunks of "regular" bins (that meaning small, large and unsorted) are equipped with a pointer towards the *main_arena* which is the centralized heap management structure in the libc.
 
 It has a distance of about 0x4000 (I can't remember and I'm to lazy to check) bytes to the *stdout*-Structure.
-ASLR only randomizes addresses at page boundaries so the smallest increment it can't make it 0x1000, meaning the last the nibbles of the address are static.
+ASLR only randomizes addresses at page boundaries so the the interval between possible 0x1000, meaning the last three nibbles of the address are static.
 So once we have this pointer we can successfully exploit it with a 1 in 16 chance.
 
+A little clarification: You have a 1 in 16 chance to overwrite a pointer to a chosen location for **all**
+distances between 0x100 and 0xF000. That happens because you are always forced to overwrite the second least significant byte of the address. As written 1 nibble (1 hex number) of this byte is random as long as ASLR is enabled, resulting in you guessing it correctly 1 out of 16 times.
+
 Still leaves the main problem of forcing a chunk into a regular bin.\
-The easiest way is to free a chunk of more than *0x410* bytes since Tcaches won't cover them, however as we coudn't allocate anything that large that didn't work.
-(I lied to you ealier this was the point where I found the size limitation)\
+The easiest way is to free a chunk of more than *0x410* bytes since Tcaches won't cover them, however as we can't allocate anything that large it doesn't work.
+(I lied to you earlier that this was the point where I found the size limitation)\
 Luckily there is another way.\
-Tcache-bins are capped at a **7** free chunks. If we free more than that the next chunk will result it to go either into the corresponding *fastbin* or the *unsorted bin*.
+Tcache-bins are capped at **7** free chunks. If we free more than that all further freed chunks go either into the corresponding *fastbin* or the *unsorted bin*.
 Leaving us with our much desired fwd-pointer.
 
 With all of that said we can now finally go over the [exploit](Blindfolded/Blindfold_ex.py).\
@@ -397,10 +401,10 @@ io.info("(Hex : " + leak.encode("hex") + ")")
 libc_base = u64(leak[8:16]) - 0x3ed8b0
 io.info(hex(libc_base))
 ```
-Now the part that I've thouroghly explained is over.
+Now the part that I've thoroughly explained is over.
 But now hijacking the control-flow is straightforward.
 
-On every invocation of free it internally calls the *__free_hook* with the chunk as its first agument. With our arbitrary allocations we get a chunk there and overwrite it with either a gadget or with system and the program we want to execute ("/bin/sh") as its argument.
+On every invocation of free it internally calls the *\__free_hook* with the chunk as its first argument. With our arbitrary allocations we force malloc to return us a chunk there and overwrite it with either a gadget or with the address of system and the program we want to execute ("/bin/sh") as its argument (the chunk we free).
 
 ``` python
 # now we'll overwrite the free_hook with system
@@ -431,6 +435,7 @@ At this point we've got a shell and can just cat the flag.
 I also got the [original](Blindfolded/private/real_src.c) source code from there if you want to compare it to [mine](Blindfolded/challenge_guessed.c).
 
 All in all a really cool challenge that once again shows that "heap binaries are useless".
+Lastly for debugging stuff like this exploit I can't recommend gef's heap functions enough, especially "heap bins", since they are an immense help when debugging exploits like this.
 
 -- MMunier
 
