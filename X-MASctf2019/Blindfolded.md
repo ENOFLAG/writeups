@@ -35,7 +35,7 @@ Judging by the menu Label one could quickly assume with option corresponded to w
     <li value=1337> Realloc => realloc (duh!) </li>
 </ol>
 
-As a quite a few challenges already had this binary is one that never prints user input. This is quite telling of a libc-leak-vector which comes afaik from *@angelboy* as well as his challenge *Baby_Tcache* originally from HITCON CTF 2018 with [this writeup by bi0s](https://vigneshsrao.github.io/babytcache/) being a great recource for it.\
+As quite a few challenges already had, this binary is one of those that never prints any user input. This is quite telling of a libc-leak-vector which comes afaik from *@angelboy* as well as his challenge *Baby_Tcache* originally from HITCON CTF 2018 with [this writeup by bi0s](https://vigneshsrao.github.io/babytcache/) being a great recource for it.\
 This is partially confimed by the Dockerfile since `Ubuntu:18.04` provides `glibc version 2.27` -- the same as baby_tcache.
 
 
