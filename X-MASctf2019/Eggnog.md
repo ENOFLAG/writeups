@@ -142,7 +142,7 @@ This is where the challenge basically shifted to a bit of crypto.
 
 ## Finding the LCG Parameters
 
-Just googling for it is immediately clear that LCG are well understood and there's a [stackoverflow post](https://security.stackexchange.com/questions/4268/cracking-a-linear-congruential-generator) for everything and a few directed me to this [paper](http://www.reteam.org/papers/e59.pdf) (Now we're again playing find the crypto-paper.)
+Just googling for it, it is immediately clear that LCGs are well understood and there are [stackoverflow posts](https://security.stackexchange.com/questions/4268/cracking-a-linear-congruential-generator) for everything. A few of them directed me to this paper: ["How to crack a Linear Congruential Generator"](http://www.reteam.org/papers/e59.pdf) (Now we're once again playing find the crypto-paper ...)
 
 It states that we can find an integer multiple of the modulus by calculating the determinant of following matrix:
 
@@ -170,7 +170,7 @@ state_n - state_n+2 = m * (state_n+1 -  state_n)
 m = state_n - state_n+2 * (state_n+1 - state_n)^-1 
 ```
 
-Taking the multiplicative inverse of something mod N only works when they dont share any factors but that happens oft enough to not be an issue further down the line.
+Taking the multiplicative inverse of something mod N only works when they dont share any factors but that happens often enough to not be an issue further down the line.
 
 Now calculating c becomes trivial (even for me ^^):\
 `c = state_n+1 - m * state_n mod N`
@@ -179,13 +179,13 @@ With now all parameters known we can now predict the output of the LCG and with 
 
 ## Putting it all together
 With the filtered chars known for all rounds after the first input we send it $random_stuff for the first round since we are only interested at the dumped states anyways.\
-So we decline the first cooking and prepare our shellcode by predicting the next few outputs and adding padding bytes in those places into the shellcode.
+So we decline the first cooking and prepare our shellcode by predicting the next few outputs and add padding bytes in those places into the shellcode.
 
 Those being filtered out we decide to cook our second course
 and get rewarded with a shell and the flag to accompany it:\
 *X-MAS{D1nkl3b3rg_w4tch_0ut_f0r_N0g_M4n}*
 
-If you want my messy exploit code click [here](Eggnog_ex.py) (but tbh I can't reccomend it). 
+If you want my messy exploit code click [here](Eggnog_ex.py) (but tbh I can't recommend it). 
 
 All in all nice and easy pwn/crypto challenge.
 
