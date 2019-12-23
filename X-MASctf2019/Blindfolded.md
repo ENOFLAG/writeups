@@ -53,8 +53,8 @@ All in all allocations of an arbitrary size and content are already quite a powe
 
 ### Deleting notes
 
-As expected the vulnerability was in the deleting Option.
-Similarly to the guessed array indices in the creation of the notes deleting a Note required an index too.
+As expected the vulnerability was in the deleting option.
+Similarly to the guessed array indices creating the notes deleting a Note required an index too.
 
 ![Challenge Description](Blindfolded/Blindfolded-free.png)
 
@@ -211,9 +211,9 @@ This is done via repeatedly freeing the same pointer and then overwriting the fw
 However since we have no info leak over the binary, heap, stack or libc (in hindsight I should've checked if the binary even had PIE enabled), it doesn't let us hijack the controlflow immediately. With PIE and RELRO not fully enabled it might have been possible to overwrite the GOT of the binary directly, however I never followed that idea to its conclusion.
 
 Lets say we have a pointer into the libc on our heap.
-If the difference between it and the `_IO_2_1_stdout_`-Structure is small enough we can partially overwrite it to point there without much bruteforce, even if ASLR is enabled.\
+If the difference between it and the `_IO_2_1_stdout_`-Structure is small enough we can partially overwrite it to point there without much bruteforce, even if ASLR is enabled.
 
-Overwriting the stdout-Structure with specific junk seen in [slides 62+](https://www.slideshare.net/AngelBoy1/play-with-file-structure-yet-another-binary-exploit-technique) or copied directly from [here](https://vigneshsrao.github.io/babytcache/), leads it to believe that it's buffer is filled with stuff from the bss-section of libc and thus prints the our enlarged buffer upon the next invocation of puts/printf ...\
+Overwriting the stdout-Structure with specific junk seen in [slides 62+](https://www.slideshare.net/AngelBoy1/play-with-file-structure-yet-another-binary-exploit-technique) or copied directly from [here](https://vigneshsrao.github.io/babytcache/), leads it to believe that it's buffer is filled with stuff from the bss-section of libc and thus prints our enlarged buffer upon the next invocation of puts/printf ...\
 Which is how we leak our libc. 
 
 Now the question at hand is how do we get this libc-pointer and how do we allocate a chunk there.
