@@ -24,7 +24,7 @@ Order of the base element mod N = 1434046584318138975429604357515315099988055380
 * Additionally some number $a$ with its order
 * order $o(a)=$ smallest $k$ with $a^k\bmod n = 1$
 
-## Lösung
+## Solution
 
 * element-order divides group-order
 * multiplicative group modulo n has $\varphi(n)$ elements
