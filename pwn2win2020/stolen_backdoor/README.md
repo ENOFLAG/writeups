@@ -1,5 +1,5 @@
 # pwn2win CTF 2020 - stolen_backdoor (pwn)
-*31 May 2020, Writeup by Liikt and MMunier*
+*31 May 2020, Writeup by [Liikt](https://twitter.com/JB_Liikt) and [MMunier](https://twitter.com/_mmunier)*
 
 
 Challenge Author: esoj
