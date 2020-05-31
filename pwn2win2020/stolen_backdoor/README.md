@@ -1,5 +1,5 @@
 # pwn2win CTF 2020 - stolen_backdoor (pwn)
-*31 May 2020, Writeup by liikt and MMunier*
+*31 May 2020, Writeup by Liikt and MMunier*
 
 
 Challenge Author: esoj
@@ -571,4 +571,4 @@ hearing that we were the first and only ones to solve this challenge:
 
 "[Considering how we play A/D CTFs] stolen_door sounds 100% like enoflag"
 
-<3 Mmunier and Liikt
+<3 MMunier and Liikt
