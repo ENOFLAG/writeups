@@ -56,7 +56,7 @@ void main(void) {
 ```
 All the encoder binary does is go through each character of the flag (which was
 obviously redacted in the binary which was distributed as seen above), print the
-emoji corresponding to that char and sleep 10 µsec.
+emoji corresponding to that char and sleep 10 µs.
 After the flag was entirely printed the program prints the char `-` 0x1e times,
 followed by ` End of transmission `, another 0x1e `-` and a newline.
 Then the program sleeps for 5 milliseconds and does the whole thing again.
@@ -210,18 +210,19 @@ The closer they are to the actual processing unit the faster the access time.
 ### Cache Structure and Behavior
 
 You can think of the cache being structured similarly to the main memory. 
-However as there is less of it (as seen in cpuinfo as shown above `46080 KB`) the "page equivalent" structures get smaller as well. These are called cache lines and as seen above they are 64 Bytes in size.
+However as there is less cache available (as seen in cpuinfo as shown above `46080 KB`) the "page equivalent" structures get smaller as well. These are called cache lines and as seen above are 64 Bytes in size.
 As regular memory gets used the cpu tries to optimize access times and loads frequently used addresses into higher and higher levels of cache.
-Accesses to loaded cache are being tracked by the CPU and if a specific line is not sufficiently used it gradually decays as other addresses are cached, until it is no longer present in any level of cache and has to be fetched from regular DRAM once again.
+Accesses to loaded caches are being tracked by the CPU and if a specific line is not sufficiently used it gradually decays as other addresses are being cached, until it is no longer present in any level of cache and has to be fetched from regular DRAM once again.
 
-For optimization most newer x86 (x64) cpus expose a few instructions to directly affect what parts of memory are loaded into cache.
+For optimization most newer x86 (x64) cpus expose a few instructions to directly affect which parts of memory are loaded into cache.
 
 The two instructions most relevant for userspace are the `prefetch`-family and `clflush`.
 `Prefetch*` can be used to tell the cpu that a specific part of memory will be used shortly in the future, as a signal for the CPU to load it into cache whenever it finds time for it.
-Surprising for everyone `clflush` does the complete opposite. Whatever address it was pointed to, gets evicted from every level of cache and is written back to memory.
+Surprising for everyone `clflush` does the complete opposite. Whatever address it pointed to, gets evicted from every level of cache and is written back to memory.
 There are other instructions for influencing this speculative behavior including fences and more privileged instructions for eg. invalidating the entire cache (`INVD`). However ultimately most instructions influence caching behavior in some way as soon as they interface with memory.
 
-As for our encoder binary each time the emoji-library used, encodes a specific character the resulting emoji-address (and the adjacent memory next to it) would be loaded into a cache line on some level of cache. This is what exposes it to the following attacks.
+As for our encoder binary each time the emoji-library encodes a specific character, the resulting emoji-address (and the adjacent memory next to it) would be loaded into a cache line on some level of cache. This is what exposes it to the following attacks.
+
 Another key importance lied on the `0xa0` multiplier for accessing entries in the emojidb, since this caused each accessed emoji to have its own cache line.
 
 ## Cache Side-Channel Attacks
@@ -442,7 +443,7 @@ for x in os.listdir("."):
 
 The result was, that the flag must be made out of the characters `swR}W-FBL{TCdc3l10ne4_rbi`.
 
-Graphing the latency-data for `C` showed a regular pattern of a single spike with a approximatly constant frequency.
+Graphing the latency-data for `C` showed a regular pattern of a single spike with an approximatly constant frequency.
 This lead us to believe that the char `C` occured exactly once in the flag, and the observed frequency was the outer loop which took somewhat over 7ms in total. (5000µs sleep in the outer loop + appox 2000µs for printing the flag itself)
 
 Based on the flag format `CTF-BR{....}` we could assume that this spike is the start of a new Flag. This key information now enhanced our script.
@@ -451,11 +452,7 @@ We would no longer search for just a single character, but two, namely `C` as ou
 ```C
 int main(int argc, char **argv) {
     void *emojilib = getEmojis();
-    uint64_t start, end, delta, tmp;
 
-#ifdef DEBUG
-    uint64_t times[ITERATIONS];
-#endif
     uint64_t deltas[ITERATIONS];
 
     for (int i = 0; i < ITERATIONS; i++){
@@ -469,9 +466,6 @@ int main(int argc, char **argv) {
         }
 
         deltas[i] = time_foo(emojilib + LIB_OFFSET);
-#ifdef DEBUG
-        times[i] = rdtsc();
-#endif
     }
 
     for (int i = 0; i < ITERATIONS; i++){
@@ -483,12 +477,12 @@ int main(int argc, char **argv) {
 }
 ```
 
-Having found a `C`-Spike (with a pretty hard Threshhold to not find any false positives) we would inject a single (char) 1 into the byte-stream. We simply chose it since it should be impossible to trigger otherwise and we weren't sure if `printf("%c", 0);` would print anything, so we just took the next best thing.
+Having found a `C`-Spike (with a pretty hard threshhold to not find any false positives) we would inject a single `(char) 1` into the byte-stream. We chose it for the simple reason that it should be impossible to have a meassured amount of one cpu cycle and we weren't sure if `printf("%c", 0);` would print anything, so we just took the next best thing.
 
-This allowed us no now measure the timing of the spikes in relation to the start of the signal resulting in something like this:
+This allowed us to now measure the timing of the spikes in relation to the start of the signal. The following graph is a the result for the letter `e`:
 ![e with reference markers](./e_fast_probes_v2.png)
 
-Zooming closer 3 individual `e` spikes could be seen in the signal, all of them at distinct times after the metronome.
+Zooming in closer 3 individual `e` spikes can be seen in the signal, all of them at distinct times after the metronome.
 
 ![e with reference markers](./e_fast_probes_2cycles_v2.png)
 
@@ -505,18 +499,10 @@ font = {'size' : 16}
 matplotlib.rc('font', **font)
 
 txt = open(results_fmt, 'rb').read()
-# lines = [txt[i:i+LINEWIDTH-1] for i in range(0, len(txt), LINEWIDTH)][:-1]
 deltas = [i for i in txt]
 startbytes = [i for i, val in enumerate(deltas) if val == 1]
 deltas = list(filter(lambda a: a != 1, deltas))
-# DECODE NUMS with timestamp
-# 
-# deltas = [int(i.split(b", ")[0]) for i in txt.split(b"\n")[:-1]]
-# timestamps = [int(i.split(b", ")[0])  for i in txt.split(b"\n")[:-1]]
 
-# for i in deltas:
-    # print(len(i))
-# t = np.linspace(0, len(deltas) * 1e-3, len(deltas), False)
 deltas = np.array(deltas)
 print(deltas.shape)
 
@@ -548,7 +534,7 @@ plt.show()
 We used the maximum number of cache hits as a filter for the individual signal bursts, in cace we missed any cache hits.
 Their respective timing after the start of the signal was then averaged to get an approximate delay of the character.
 
-The characters were then just sorted by delay after the startbyte.
+The characters were then just sorted by delay after the start byte.
 
 ```python
 time_arr = []
@@ -572,3 +558,17 @@ Whilst that was running in the background we simply started guessing the Flag, s
 After a few failed attempts `CTF-BR{Tr4nsc3ndence_R3bell10n_wiLl_W1n}` was suddenly accepted, a few minutes before the rerun script came to the same solution.
 
 ## Conclusion
+
+We solved this challenge after roughly 14-15 hours of working on it.
+I personally feel like this was a really well thought through and fair challenge.
+It had a really good difficulty to is and was fun to exploit.
+
+All in all probs and thanks to the Pwn2Win team amd esoj in particular for this
+challenge.
+
+I would like to end this writeup with a quote from a team mate of ours after 
+hearing that we were the first and only ones to solve this challenge:
+
+"[Considering how we play A/D CTFs] stolen_door sounds 100% like enoflag"
+
+<3 Mmunier and Liikt
