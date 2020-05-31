@@ -456,9 +456,9 @@ int main(int argc, char **argv) {
     uint64_t deltas[ITERATIONS];
 
     for (int i = 0; i < ITERATIONS; i++){
-        clflush(emojilib + 0x3700);  # C-Offset
+        clflush(emojilib + 0x3700);  // C-Offset
         clflush(emojilib + LIB_OFFSET);
-        //usleep(1);  # You mustn't use syscalls in here
+        //usleep(1);  // You mustn't use syscalls in here
         pseudo_sleep(3000);
         if (160 > time_foo(emojilib + 0x3700)){
             deltas[i] = 1;
