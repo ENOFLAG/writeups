@@ -20,6 +20,8 @@ Rebellious Fingers got a low privilege backdoor in one of ButcherCorp's machines
 * Your payload (in binary format) will be executed for 5 seconds only.
 * Server: nc stolenbd.pwn2.win 1337
 
+[Folder](./challenge_files)
+
 # Challenge
 
 The extracted zip contained two binaries, one called `encoder` and one called
