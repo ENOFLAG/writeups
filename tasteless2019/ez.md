@@ -235,11 +235,11 @@ The only problem here is the stack canary.
 
 We have no way of leaking the canary so we can't know it's value.
 We do have the 5 byte of shellcode at the start, but 5 byte is hardly enough for 2 useful instructions.
-So that doesn't help
+So that doesn't help.
 The canary is a value stored in memory and pointed to by a segment register (in this case the `fs` register). 
 Usually this register is protected and can only be accessed if the CPU is in a more privileged mode than the user mode.
 So a user shouldn't be able to change the content of the `fs_base` register and subsequently change the pointer to the canary.
-This surely has to be a protected register.
+This surely has to be a protected register ... right?
 
 Enter `wrfsbase` and `wrgsbase`. 
 According to [this gist](https://gist.github.com/MerryMage/f22e75d5128c07d77630ca01c4272937) FreeBSD just doesn't care if the segment registers are changed.
