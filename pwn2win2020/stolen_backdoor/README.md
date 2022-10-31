@@ -57,7 +57,7 @@ void main(void) {
 }
 ```
 All the encoder binary does is go through each character of the flag (which was
-obviously redacted in the binary which was distributed as seen above), print the
+obviously redacted in the distributed binary as seen above), print the
 emoji corresponding to that char and sleep 10 µs.
 After the flag was entirely printed the program prints the char `-` 0x1e times,
 followed by ` End of transmission `, another 0x1e `-` and a newline.
@@ -88,21 +88,20 @@ if ((char < '-') || ('}' < char)) {
 return uVar2;
 ```
 First the `printTranslate` function checks if the char is between `-` and `}`,
-giving us a slightly more constraint possible flag alphabet.
+giving us a slightly more constraint flag alphabet.
 This function performs the operation `emojiLib[(char - 0x2d) * 0xa0]`.
 
 As the note says the `encoder` binary is running on the server. 
-If you connect to the server you are greeted with 
+When we connect to the server we are greeted with 
 ```
 Hello there. Send me your ELF.
 ps -aux | grep encoder
 root         8  6.6  0.1   2360   696 ?        S    May29 191:53 /home/manager/encoder
 Give me how many bytes (max: 30000)
 ```
-which confirms, the note.
-Now you can upload any ELF binary with a max size of 30kB which will be run for
+Now we can upload any ELF binary with a max size of 30kB which will be run for
 5 seconds as per the note of the challenge.
-The server would then return you the first 10000 bytes of the output of your
+The server would then return us the first 10000 bytes of the output of our
 executed program.
 This is probably the "stolen backdoor" the challenge was named after.
 
@@ -111,7 +110,7 @@ This is probably the "stolen backdoor" the challenge was named after.
 First to confirm how the service works and the environment we work in we wrote a
 python script, which compiles a C program, uploads it and returns us the output.
 
-This was the first program I found on [StackOverflow](https://stackoverflow.com/questions/9629850/how-to-get-cpu-info-in-c-on-linux-such-as-number-of-cores) 
+This was the first program we found on [StackOverflow](https://stackoverflow.com/questions/9629850/how-to-get-cpu-info-in-c-on-linux-such-as-number-of-cores) 
 which provides us with the information of the CPU.
 ```c
 #define _GNU_SOURCE
@@ -166,13 +165,12 @@ address sizes           : 46 bits physical, 48 bits virtual
 power management:
 ```
 The output of the above program tells us, that the CPU we are running on only
-has one core. This is important, because in this case all programs share the same
-L1, L2 and L3 CPU caches (The L3 cache is shared anyway but that is not 
-relevant here).
-With all that information we pretty much knew that we had to do some form of 
-side-channel attack because we are not able to communicate with the program, that
-has the flag in it directly, and privilege escalation was not needed as the note
-said.
+has one core. This is important, because in this case all programs share the 
+same `L1`, `L2` and `L3` CPU caches (The `L3` cache is shared anyway but that is
+not relevant here). With all that information we pretty much knew that we had to
+do some form of side-channel attack because we are not able to directly
+communicate with the program, which has the flag in it. And privilege escalation
+was not needed as the note said.
 
 ## The cache
 
@@ -225,14 +223,14 @@ There are other instructions for influencing this speculative behavior including
 
 As for our encoder binary each time the emoji-library encodes a specific character, the resulting emoji-address (and the adjacent memory next to it) would be loaded into a cache line on some level of cache. This is what exposes it to the following attacks.
 
-Another key importance lied on the `0xa0` multiplier for accessing entries in the emojidb, since this caused each accessed emoji to have its own cache line.
+Another key importance lied on the `0xa0` multiplier for accessing entries in the emojidb, since this causes each accessed emoji to have its own cache line.
 
 ## Cache Side-Channel Attacks
 [A great slide deck from the HitB Conference 2016](https://conference.hitb.org/hitbsecconf2016ams/materials/D2T1%20-%20Anders%20Fogh%20-%20Cache%20Side%20Channel%20Attacks.pdf)
 
-A side-channel attack is an attack, where an attacker user information gained by
+A side-channel attack is an attack, where an attacker can gain information by
 observing a phenomenon which is only indirectly connected to the actual 
-information gained of such an attack.
+information gained.
 
 We now have to somehow leverage the information we can get from the cache to 
 gain information of the flag in the `encoder` binary.
@@ -244,18 +242,19 @@ In fact there are four types of cache side-channel attacks
 * Flush and Flush
 
 The first three attacks work similarly.
-First you manipulate the cache to known state, „wait“ for victim activity and examine what has changed.
+First you manipulate the cache to known state, „wait“ for victim activity and 
+examine what has changed.
 
 ### Evict and Time
 
-With Evict and Time you first wait for a function to execute. Then you execute
-the function again and time it.
-After the timing you "evict" (remove it) a part of the cache.
-Then you time the function again and if the function takes longer the second time
-then you know, that the function used an address, that was part of the evicted
+With Evict and Time an attacker first waits for a function to execute. Then they
+execute the function again and time it.
+After the timing they "evict" (remove it) a part of the cache.
+Then they time the function again and if the function takes longer the second time
+they know, that the function used an address, that was part of the evicted
 cache set.
 
-This requires us to be able to execute the desired function multiple times, which
+This would require us to be able to execute the desired function multiple times, which
 we couldn't.
 Another problem is, that the resolution of Evict and Time is only a cache set,
 meaning chunks of the cache.
@@ -288,10 +287,11 @@ One requirement for this attack is that both the victim and attacker have to
 share the memory the attacker want to get to know.
 In our case this requirement was fulfilled, because in linux two programs, that
 link to the same library share the same instance of the library until one of the
-programs writes to part of it. In our case we only read from `libemojinet.so` so
+programs writes to parts of it. In our case we only read from `libemojinet.so` so
 that requirement was met.
-Also this attacks works without having to interact with the victim at all and
-we can infer information about specific cache lines.
+Also this attack works without having to interact with the victim at all and
+we can infer information about specific cache lines. Lastly this attack works on
+single cache lines instead of a whole cache set.
 
 In the end we chose to use a Flush and Reload attack to solve this challenge.
 
@@ -314,7 +314,7 @@ Reload.
 
 The most important part of all these attacks is the timing.
 A naive approach would be to use the time function of the C standard library.
-That is often used to time programs but it returns the time only in seconds.
+That is often used to time programs but it only returns the time in seconds.
 As the table of cache hits in the section about the cache shows us we are working
 with a time resolution of clock cycles. Our CPU has a clock rate of 2.30GHz.
 That is 2,300,000,000 cycles a second. And that is also the amount of interesting
@@ -324,7 +324,7 @@ start of the CPU. This high frequency time stamping method can be used to time
 instructions accurately. 
 
 As a side note we actually used the instruction `rdtscp` which prevents the CPU
-to rearrange the instructions and possibly skewing the timing.
+of rearranging the instructions and possibly skewing the timing.
 
 # Solution
 
@@ -409,7 +409,7 @@ int main(int argc, char **argv) {
 * `clflush` executes the `clflush` instruction on a given emoji
 * `time_foo` times the access to a given emoji and returns the lower 32 bits of
 the counter as that is enough for us
-* `pseudo_sleep` just does a busy loop and just waits. We tried multiple times to use usleep ourselves, however syscalls in general caused a lot of uncertainty in our measurements so we opted for this method instead.
+* `pseudo_sleep` does a busy loop and just waits. We tried multiple times to use usleep ourselves, however syscalls in general caused a lot of uncertainty in our measurements so we opted for this method instead.
 
 We first flush the cache line containing the emoji we are interested in, and wait for the encoder to fetch it. Then we
 time the access to the same cache line again and print the resulting time of the
@@ -419,7 +419,7 @@ compared the results.
 
 ![](./not_included.png)
 
-The above graph shows the access times for the character `-`. It clearly shows
+The above graph shows the access times for the character `a`. It clearly shows
 that the access time never falls below 200 clock cycles.
 
 ![](./included.png)
@@ -427,7 +427,7 @@ that the access time never falls below 200 clock cycles.
 This graph shows the access time for the letter `e`. You can see the access time
 occasionally and periodically drops below 120.
 
-If you compare the graphs of the two character it becomes clear, that the `-`
+If you compare the graphs of the two character it becomes clear, that the character `a`
 never was loaded in the cache after our flush, while `e` occasionally was loaded.
 
 We then wrote a small python script, which would iterate over all of these graphs
@@ -479,7 +479,7 @@ int main(int argc, char **argv) {
 }
 ```
 
-Having found a `C`-Spike (with a pretty hard threshhold to not find any false positives) we would inject a single `(char) 1` into the byte-stream. We chose it for the simple reason that it should be impossible to have a meassured amount of one cpu cycle and we weren't sure if `printf("%c", 0);` would print anything, so we just took the next best thing.
+Having found a `C`-Spike (with a pretty hard threshhold to not have any false positives) we would inject a single `(char) 1` into the byte-stream. We chose `1` for the simple reason that it should be impossible to have a meassured only 1 cycle and we weren't sure if `printf("%c", 0);` would print anything, so we just took the next best thing.
 
 This allowed us to now measure the timing of the spikes in relation to the start of the signal. The following graph is a the result for the letter `e`:
 ![e with reference markers](./e_fast_probes_v2.png)
@@ -565,7 +565,7 @@ We solved this challenge after roughly 14-15 hours of working on it.
 I personally feel like this was a really well thought through and fair challenge.
 It had a really good difficulty to is and was fun to exploit.
 
-All in all probs and thanks to the Pwn2Win team amd esoj in particular for this
+All in all probs and thanks to the Pwn2Win team and esoj in particular for this
 challenge.
 
 I would like to end this writeup with a quote from a team mate of ours after 
